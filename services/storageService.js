@@ -1,13 +1,29 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const BACKUPS_DIR = path.join(DATA_DIR, 'backups');
+const isVercel = Boolean(process.env.VERCEL);
+const BUNDLE_DATA_DIR = path.join(__dirname, '..', 'data');
 const WORKBOOK_FILENAME = 'Dataset_Bebek_Sanjay_Gowa_Revisi_Menu_Harga_210_Transaksi(1).xlsx';
-const WORKBOOK_PATH = path.join(DATA_DIR, WORKBOOK_FILENAME);
+const BUNDLE_WORKBOOK_PATH = path.join(BUNDLE_DATA_DIR, WORKBOOK_FILENAME);
 
-if (!fs.existsSync(BACKUPS_DIR)) {
-  fs.mkdirSync(BACKUPS_DIR, { recursive: true });
+const DATA_DIR = isVercel ? path.join(os.tmpdir(), 'bebek_sanjay') : BUNDLE_DATA_DIR;
+const BACKUPS_DIR = path.join(DATA_DIR, 'backups');
+const WORKBOOK_PATH = isVercel ? path.join(DATA_DIR, WORKBOOK_FILENAME) : BUNDLE_WORKBOOK_PATH;
+
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(BACKUPS_DIR)) {
+    fs.mkdirSync(BACKUPS_DIR, { recursive: true });
+  }
+  // Initialize working copy in /tmp if running on Vercel
+  if (isVercel && !fs.existsSync(WORKBOOK_PATH) && fs.existsSync(BUNDLE_WORKBOOK_PATH)) {
+    fs.copyFileSync(BUNDLE_WORKBOOK_PATH, WORKBOOK_PATH);
+  }
+} catch (e) {
+  console.warn('Storage directory initialization notice:', e.message);
 }
 
 class StorageService {

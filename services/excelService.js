@@ -1,10 +1,19 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const storageService = require('./storageService');
 const inventoryService = require('./inventoryService');
 
-const AUDIT_LOG_FILE = path.join(__dirname, '..', 'data', 'audit_log.json');
+const isVercel = Boolean(process.env.VERCEL);
+const BUNDLE_AUDIT_LOG_FILE = path.join(__dirname, '..', 'data', 'audit_log.json');
+const AUDIT_LOG_FILE = isVercel ? path.join(os.tmpdir(), 'bebek_sanjay_audit.json') : BUNDLE_AUDIT_LOG_FILE;
+
+if (isVercel && !fs.existsSync(AUDIT_LOG_FILE) && fs.existsSync(BUNDLE_AUDIT_LOG_FILE)) {
+  try {
+    fs.copyFileSync(BUNDLE_AUDIT_LOG_FILE, AUDIT_LOG_FILE);
+  } catch (e) {}
+}
 
 class ExcelService {
   constructor() {

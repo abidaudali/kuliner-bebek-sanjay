@@ -1,9 +1,19 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const isVercel = Boolean(process.env.VERCEL);
+const BUNDLE_USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const USERS_FILE = isVercel ? path.join(os.tmpdir(), 'bebek_sanjay_users.json') : BUNDLE_USERS_FILE;
+
+if (isVercel && !fs.existsSync(USERS_FILE) && fs.existsSync(BUNDLE_USERS_FILE)) {
+  try {
+    fs.copyFileSync(BUNDLE_USERS_FILE, USERS_FILE);
+  } catch (e) {}
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'bebek_sanjay_gowa_secret_key_2026';
 
 function getUsers() {
