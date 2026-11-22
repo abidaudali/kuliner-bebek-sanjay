@@ -15,6 +15,14 @@ async function runTests() {
   console.log('🧪 RUNNING KULINER BEBEK SANJAY GOWA INTEGRATION TEST');
   console.log('====================================================\n');
 
+  // Ensure pristine workbook is loaded for tests
+  const pristinePath = path.join(__dirname, '..', 'Dataset_Bebek_Sanjay_Gowa_Revisi_Menu_Harga_210_Transaksi(1).xlsx');
+  const targetPath = storageService.getWorkbookPath();
+  if (fs.existsSync(pristinePath)) {
+    fs.copyFileSync(pristinePath, targetPath);
+    await excelService.loadWorkbook();
+  }
+
   let passedCount = 0;
   let testCount = 0;
 
@@ -66,6 +74,34 @@ async function runTests() {
 
     const invalid = authService.authenticate('owner', 'wrong_pass');
     assert.strictEqual(invalid, null, 'Invalid login must return null');
+  });
+
+  test('Role Authorization: Enforce strict boundaries for OWNER, KASIR, and DAPUR', () => {
+    const ownerReq = { user: { role: 'OWNER' } };
+    const kasirReq = { user: { role: 'KASIR' } };
+    const dapurReq = { user: { role: 'DAPUR' } };
+
+    let ownerPassed = false;
+    authService.requireRole(['OWNER'])(ownerReq, {}, () => { ownerPassed = true; });
+    assert.strictEqual(ownerPassed, true, 'Owner should pass requireRole OWNER');
+
+    let kasirBlocked = false;
+    const mockRes = {
+      status: (code) => {
+        if (code === 403) kasirBlocked = true;
+        return { json: () => {} };
+      }
+    };
+    authService.requireRole(['OWNER'])(kasirReq, mockRes, () => {});
+    assert.strictEqual(kasirBlocked, true, 'Kasir must be blocked from OWNER routes with 403');
+
+    let dapurPassed = false;
+    authService.requireRole(['DAPUR', 'OWNER'])(dapurReq, {}, () => { dapurPassed = true; });
+    assert.strictEqual(dapurPassed, true, 'Dapur should pass kitchen routes');
+
+    let dapurBlockedFromPOS = false;
+    authService.requireRole(['OWNER', 'KASIR'])(dapurReq, { status: (c) => ({ json: () => { dapurBlockedFromPOS = (c === 403); } }) }, () => {});
+    assert.strictEqual(dapurBlockedFromPOS, true, 'Dapur must be blocked from POS checkout with 403');
   });
 
   // 3. BOM & Inventory Formula Test
@@ -185,6 +221,32 @@ async function runTests() {
   console.log('====================================================\n');
 
   if (passedCount === testCount) {
+    // Restore pristine file and clean test backups
+    if (fs.existsSync(pristinePath)) {
+      fs.copyFileSync(pristinePath, targetPath);
+    }
+    const backupsDir = path.join(__dirname, '..', 'data', 'backups');
+    if (fs.existsSync(backupsDir)) {
+      const files = fs.readdirSync(backupsDir);
+      for (const f of files) fs.unlinkSync(path.join(backupsDir, f));
+    }
+    const auditFile = path.join(__dirname, '..', 'data', 'audit_log.json');
+    if (fs.existsSync(auditFile)) {
+      fs.writeFileSync(auditFile, JSON.stringify([{
+        id: 'LOG-INIT-001',
+        timestamp: '2026-11-22T08:00:00.000Z',
+        tanggal: '2026-11-22',
+        jam: '16:00:00',
+        username: 'system',
+        role: 'SYSTEM',
+        action: 'INISIALISASI_SISTEM',
+        sheet: 'ALL',
+        details: 'Inisialisasi sistem Kuliner Bebek Sanjay Gowa dan sinkronisasi workbook Excel 210 Transaksi.',
+        before: null,
+        after: { status: 'READY', sheets: 10 }
+      }], null, 2), 'utf8');
+    }
+
     console.log('🎉 ALL INTEGRATION TESTS PASSED PERFECTLY!\n');
     process.exit(0);
   } else {

@@ -80,7 +80,26 @@ const POS = {
       </div>
     `;
 
+    this.loadCart();
+    this.renderCart();
     await this.loadMenu();
+  },
+
+  loadCart() {
+    try {
+      const saved = localStorage.getItem('bsg_pos_cart');
+      if (saved) {
+        this.cart = JSON.parse(saved);
+      }
+    } catch (e) {
+      this.cart = [];
+    }
+  },
+
+  saveCart() {
+    try {
+      localStorage.setItem('bsg_pos_cart', JSON.stringify(this.cart));
+    } catch (e) {}
   },
 
   async loadMenu() {
@@ -187,6 +206,7 @@ const POS = {
       });
     }
 
+    this.saveCart();
     this.renderCart();
   },
 
@@ -199,16 +219,19 @@ const POS = {
       this.cart.splice(index, 1);
     }
 
+    this.saveCart();
     this.renderCart();
   },
 
   removeItem(kode_menu) {
     this.cart = this.cart.filter(c => Number(c.kode_menu) !== Number(kode_menu));
+    this.saveCart();
     this.renderCart();
   },
 
   clearCart() {
     this.cart = [];
+    this.saveCart();
     this.renderCart();
   },
 

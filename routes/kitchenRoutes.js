@@ -41,7 +41,7 @@ function syncKitchenOrders() {
 }
 
 // GET active kitchen queue (DAPUR / OWNER / KASIR)
-router.get('/queue', (req, res) => {
+router.get('/queue', authMiddleware, requireRole(['DAPUR', 'OWNER', 'KASIR']), (req, res) => {
   try {
     if (kitchenOrders.length === 0) syncKitchenOrders();
     const active = kitchenOrders

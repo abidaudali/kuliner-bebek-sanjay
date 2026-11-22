@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const excelService = require('../services/excelService');
+const { authMiddleware, requireRole } = require('../services/authService');
 
-// Pemakaian Detail
-router.get('/pemakaian-detail', (req, res) => {
+router.use(authMiddleware);
+
+// Pemakaian Detail (OWNER)
+router.get('/pemakaian-detail', requireRole(['OWNER']), (req, res) => {
   try {
     const list = excelService.getPemakaianDetail(req.query);
     res.json({ success: true, count: list.length, data: list });
@@ -12,8 +15,8 @@ router.get('/pemakaian-detail', (req, res) => {
   }
 });
 
-// Pemakaian Harian
-router.get('/pemakaian-harian', (req, res) => {
+// Pemakaian Harian (OWNER)
+router.get('/pemakaian-harian', requireRole(['OWNER']), (req, res) => {
   try {
     const list = excelService.getPemakaianHarian(req.query);
     res.json({ success: true, count: list.length, data: list });
@@ -22,8 +25,8 @@ router.get('/pemakaian-harian', (req, res) => {
   }
 });
 
-// Kartu Stok Harian
-router.get('/kartu-stok', (req, res) => {
+// Kartu Stok Harian (OWNER)
+router.get('/kartu-stok', requireRole(['OWNER']), (req, res) => {
   try {
     const list = excelService.getKartuStok(req.query);
     res.json({ success: true, count: list.length, data: list });
@@ -32,8 +35,8 @@ router.get('/kartu-stok', (req, res) => {
   }
 });
 
-// Safety Stock & Reorder Point
-router.get('/ss-rop', (req, res) => {
+// Safety Stock & Reorder Point (OWNER)
+router.get('/ss-rop', requireRole(['OWNER']), (req, res) => {
   try {
     const list = excelService.getSsRop(req.query);
     res.json({ success: true, count: list.length, data: list });
