@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Yellow Circle -->
+  <circle cx="50" cy="50" r="48" fill="#F5D500"/>
+  <!-- BS Monogram -->
+  <text x="32" y="55" font-family="'Montserrat', 'Arial Black', sans-serif" font-weight="900" font-size="36" fill="#171717" text-anchor="middle">B</text>
+  <!-- Stylized Duck Head -->
+  <path d="M48 26 C48 21 54 21 56 26 C58 31 66 33 66 37 C66 42 61 44 57 44 C53 44 48 38 48 33 Z" fill="#E11D48"/>
+  <circle cx="53" cy="28" r="2" fill="#FFFFFF"/>
+  <!-- Bebek Sanjay text in circle -->
+  <text x="50" y="68" font-family="'Montserrat', 'Segoe UI', sans-serif" font-weight="800" font-size="8.5" fill="#171717" text-anchor="middle" letter-spacing="-0.2">Bebek Sanjay</text>
+  <!-- Madura Red Badge -->
+  <rect x="28" y="72" width="44" height="13" rx="2.5" fill="#DC2626"/>
+  <text x="50" y="82" font-family="'Montserrat', 'Segoe UI', sans-serif" font-weight="800" font-size="8" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">Madura</text>
+</svg>

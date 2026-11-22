@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 120" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Badge / Circle Container -->
+  <g transform="translate(10, 10)">
+    <!-- Yellow Circle -->
+    <circle cx="50" cy="50" r="48" fill="#F5D500" filter="url(#shadow)"/>
+    <!-- BS Monogram -->
+    <text x="32" y="55" font-family="'Montserrat', 'Arial Black', sans-serif" font-weight="900" font-size="36" fill="#171717" text-anchor="middle">B</text>
+    <!-- Stylized Duck Head in Logo -->
+    <path d="M48 26 C48 21 54 21 56 26 C58 31 66 33 66 37 C66 42 61 44 57 44 C53 44 48 38 48 33 Z" fill="#E11D48"/>
+    <circle cx="53" cy="28" r="2" fill="#FFFFFF"/>
+    <!-- Bebek Sanjay text in circle -->
+    <text x="50" y="68" font-family="'Montserrat', 'Segoe UI', sans-serif" font-weight="800" font-size="8.5" fill="#171717" text-anchor="middle" letter-spacing="-0.2">Bebek Sanjay</text>
+    <!-- Madura Red Badge -->
+    <rect x="28" y="72" width="44" height="13" rx="2.5" fill="#DC2626"/>
+    <text x="50" y="82" font-family="'Montserrat', 'Segoe UI', sans-serif" font-weight="800" font-size="8" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">Madura</text>
+  </g>
+
+  <!-- Typography Right -->
+  <g transform="translate(130, 20)">
+    <!-- Nasi Bebek -->
+    <text x="0" y="28" font-family="'Poppins', 'Segoe UI', sans-serif" font-weight="800" font-size="26" fill="#FFFFFF" letter-spacing="0.5">Nasi</text>
+    
+    <!-- Stylized White Duck Icon in between -->
+    <g transform="translate(62, 5) scale(0.85)">
+      <path d="M12 2 C8 2 4 6 4 10 C4 15 9 18 11 22 C13 26 13 32 8 36 C14 36 18 31 18 24 C18 18 13 15 11 11 C10 8 12 5 14 5 C16 5 17 6 18 8 L22 6 C20 3 16 2 12 2 Z" fill="#FFFFFF"/>
+      <circle cx="10" cy="8" r="1.5" fill="#171717"/>
+    </g>
+    
+    <text x="92" y="28" font-family="'Poppins', 'Segoe UI', sans-serif" font-weight="800" font-size="26" fill="#FFFFFF" letter-spacing="0.5">Bebek</text>
+
+    <!-- Sanjay in Brand Yellow -->
+    <text x="0" y="70" font-family="'Poppins', 'Montserrat', sans-serif" font-weight="900" font-size="44" fill="#F5D500" letter-spacing="0.5">Sanjay</text>
+
+    <!-- GOWA Tag -->
+    <g transform="translate(160, 48)">
+      <polygon points="0,0 100,0 92,24 -8,24" fill="#F5D500"/>
+      <text x="46" y="17" font-family="'Montserrat', 'Arial Black', sans-serif" font-weight="900" font-size="14" fill="#171717" text-anchor="middle" letter-spacing="3.5">GOWA</text>
+    </g>
+  </g>
+</svg>

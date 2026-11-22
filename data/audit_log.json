@@ -1,0 +1,96 @@
+[
+  {
+    "id": "LOG-1795335134790-776",
+    "timestamp": "2026-11-22T08:12:14.790Z",
+    "tanggal": "2026-11-22",
+    "jam": "16:12:14",
+    "username": "owner",
+    "role": "OWNER",
+    "action": "BARANG_MASUK",
+    "sheet": "BARANG_MASUK",
+    "details": "Mencatat barang masuk: Daging bebek (500 kg, PEMBELIAN)",
+    "before": null,
+    "after": {
+      "tanggal": "2026-11-22",
+      "kode_bahan": "B001",
+      "nama_bahan": "Daging bebek",
+      "qty_masuk": 500,
+      "satuan": "kg",
+      "jenis": "PEMBELIAN",
+      "status_data": "AKTUAL",
+      "catatan": "Uji pengadaan bahan daging bebek"
+    }
+  },
+  {
+    "id": "LOG-1795335134687-22",
+    "timestamp": "2026-11-22T08:12:14.686Z",
+    "tanggal": "2026-11-22",
+    "jam": "16:12:14",
+    "username": "kasir_test",
+    "role": "KASIR",
+    "action": "TRANSAKSI_PENJUALAN",
+    "sheet": "TRANSAKSI_210",
+    "details": "Transaksi TRX-BSG-20261122-001 berhasil: 2 item, Total Rp 32.000",
+    "before": null,
+    "after": {
+      "id_transaksi": "TRX-BSG-20261122-001",
+      "total": 32000,
+      "itemsCount": 2
+    }
+  },
+  {
+    "id": "LOG-1795335085238-174",
+    "timestamp": "2026-11-22T08:11:25.238Z",
+    "tanggal": "2026-11-22",
+    "jam": "16:11:25",
+    "username": "owner",
+    "role": "OWNER",
+    "action": "BARANG_MASUK",
+    "sheet": "BARANG_MASUK",
+    "details": "Mencatat barang masuk: Daging bebek (500 kg, PEMBELIAN)",
+    "before": null,
+    "after": {
+      "tanggal": "2026-11-22",
+      "kode_bahan": "B001",
+      "nama_bahan": "Daging bebek",
+      "qty_masuk": 500,
+      "satuan": "kg",
+      "jenis": "PEMBELIAN",
+      "status_data": "AKTUAL",
+      "catatan": "Uji pengadaan bahan daging bebek"
+    }
+  },
+  {
+    "id": "LOG-1795335057365-966",
+    "timestamp": "2026-11-22T08:10:57.365Z",
+    "tanggal": "2026-11-22",
+    "jam": "16:10:57",
+    "username": "kasir_test",
+    "role": "KASIR",
+    "action": "TRANSAKSI_PENJUALAN",
+    "sheet": "TRANSAKSI_210",
+    "details": "Transaksi TRX-BSG-20261122-001 berhasil: 2 item, Total Rp 32.000",
+    "before": null,
+    "after": {
+      "id_transaksi": "TRX-BSG-20261122-001",
+      "total": 32000,
+      "itemsCount": 2
+    }
+  },
+  {
+    "id": "LOG-INIT-001",
+    "timestamp": "2026-11-22T08:00:00.000Z",
+    "tanggal": "2026-11-22",
+    "jam": "16:00:00",
+    "username": "system",
+    "role": "SYSTEM",
+    "action": "INISIALISASI_SISTEM",
+    "sheet": "ALL",
+    "details": "Inisialisasi sistem Kuliner Bebek Sanjay Gowa dan sinkronisasi workbook Excel 210 Transaksi.",
+    "before": null,
+    "after": {
+      "status": "READY",
+      "sheets": 10
+    }
+  }
+]

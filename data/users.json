@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "username": "owner",
+    "passwordHash": "$2b$10$m0N3s0JJ2uVKapGljxIFReDJHKRhZVUBo.tRNGseNZxfEaEQrjasS",
+    "name": "Owner Bebek Sanjay Gowa",
+    "role": "OWNER",
+    "createdAt": "2026-11-01T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "username": "kasir",
+    "passwordHash": "$2b$10$m0N3s0JJ2uVKapGljxIFReDJHKRhZVUBo.tRNGseNZxfEaEQrjasS",
+    "name": "Kasir Bebek Sanjay Gowa",
+    "role": "KASIR",
+    "createdAt": "2026-11-01T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "username": "dapur",
+    "passwordHash": "$2b$10$m0N3s0JJ2uVKapGljxIFReDJHKRhZVUBo.tRNGseNZxfEaEQrjasS",
+    "name": "Dapur Bebek Sanjay Gowa",
+    "role": "DAPUR",
+    "createdAt": "2026-11-01T00:00:00.000Z"
+  }
+]
