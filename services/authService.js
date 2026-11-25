@@ -1,46 +1,56 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+/**
+ * ============================================================================
+ * AUTHENTICATION SERVICE: KULINER BEBEK SANJAY GOWA
+ * File: services/authService.js
+ * 
+ * Terintegrasi penuh dengan tabel `users` dan `roles` di MySQL:
+ * - Autentikasi aman berbasis bcrypt (password hashing)
+ * - JSON Web Token (JWT) dengan masa berlaku sesi
+ * - Middleware verifikasi token dan pembatasan hak akses berbasis peran (RBAC)
+ * ============================================================================
+ */
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { query, getConnection } = require('../config/database');
 
-const isVercel = Boolean(process.env.VERCEL);
-const BUNDLE_USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
-const USERS_FILE = isVercel ? path.join(os.tmpdir(), 'bebek_sanjay_users.json') : BUNDLE_USERS_FILE;
+const JWT_SECRET = process.env.JWT_SECRET || 'bebek_sanjay_gowa_super_secret_jwt_2026_xyz';
 
-if (isVercel && !fs.existsSync(USERS_FILE) && fs.existsSync(BUNDLE_USERS_FILE)) {
-  try {
-    fs.copyFileSync(BUNDLE_USERS_FILE, USERS_FILE);
-  } catch (e) {}
-}
+/**
+ * Autentikasi Pengguna (Login)
+ */
+async function authenticate(username, password) {
+  if (!username || !password) return null;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'bebek_sanjay_gowa_secret_key_2026';
+  const rows = await query(`
+    SELECT 
+      u.id,
+      u.role_id,
+      u.username,
+      u.password_hash,
+      u.name,
+      u.phone,
+      u.is_active,
+      r.name as role
+    FROM users u
+    JOIN roles r ON r.id = u.role_id
+    WHERE u.username = ? AND u.is_active = 1
+    LIMIT 1
+  `, [username.trim()]);
 
-function getUsers() {
-  try {
-    if (!fs.existsSync(USERS_FILE)) return [];
-    const data = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (err) {
-    console.error('Error reading users:', err);
-    return [];
-  }
-}
+  if (!rows || rows.length === 0) return null;
+  const user = rows[0];
 
-function saveUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-}
-
-function authenticate(username, password) {
-  const users = getUsers();
-  const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-  if (!user) return null;
-  
-  const isValid = bcrypt.compareSync(password, user.passwordHash);
+  const isValid = bcrypt.compareSync(password, user.password_hash);
   if (!isValid) return null;
-  
+
   const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, name: user.name },
+    {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      name: user.name
+    },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -51,11 +61,15 @@ function authenticate(username, password) {
       id: user.id,
       username: user.username,
       name: user.name,
-      role: user.role
+      role: user.role,
+      phone: user.phone
     }
   };
 }
 
+/**
+ * Verifikasi Token JWT
+ */
 function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
@@ -64,10 +78,13 @@ function verifyToken(token) {
   }
 }
 
+/**
+ * Middleware Autentikasi Token
+ */
 function authMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  
+
   if (!token) {
     return res.status(401).json({ success: false, message: 'Akses ditolak. Token autentikasi diperlukan.' });
   }
@@ -81,79 +98,118 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-function requireRole(allowedRoles) {
+/**
+ * Middleware Otorisasi Hak Akses Berdasarkan Role
+ */
+function requireRole(allowedRoles = []) {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Pengguna belum terautentikasi.' });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Akses dilarang. Fitur ini hanya untuk peran: ${allowedRoles.join(', ')}.`
+        message: `Akses ditolak. Fitur ini memerlukan hak akses [${allowedRoles.join(' / ')}]. Role Anda saat ini: ${req.user.role}`
       });
     }
+
     next();
   };
 }
 
-function createUser({ username, password, name, role }) {
-  const users = getUsers();
-  if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-    throw new Error('Username sudah digunakan.');
-  }
-
-  const salt = bcrypt.genSaltSync(10);
-  const passwordHash = bcrypt.hashSync(password, salt);
-  const newUser = {
-    id: Date.now(),
-    username: username.trim(),
-    passwordHash,
-    name: name.trim(),
-    role: role || 'KASIR',
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  saveUsers(users);
-  return { id: newUser.id, username: newUser.username, name: newUser.name, role: newUser.role };
+/**
+ * Kelola Pengguna (Khusus Role OWNER)
+ */
+async function getUsers() {
+  const rows = await query(`
+    SELECT 
+      u.id,
+      u.username,
+      u.name,
+      r.name as role,
+      u.phone,
+      u.is_active,
+      DATE_FORMAT(u.created_at, '%Y-%m-%d %H:%i:%s') as createdAt
+    FROM users u
+    JOIN roles r ON r.id = u.role_id
+    ORDER BY u.id ASC
+  `);
+  return rows;
 }
 
-function updateUser(id, { name, role, password }) {
-  const users = getUsers();
-  const index = users.findIndex(u => u.id === Number(id));
-  if (index === -1) throw new Error('Pengguna tidak ditemukan.');
-
-  if (name) users[index].name = name.trim();
-  if (role) users[index].role = role;
-  if (password && password.trim() !== '') {
-    users[index].passwordHash = bcrypt.hashSync(password, 10);
+async function createUser(data) {
+  if (!data.username || !data.password || !data.name || !data.role) {
+    throw new Error('Username, password, nama, dan role wajib diisi.');
   }
-  users[index].updatedAt = new Date().toISOString();
 
-  saveUsers(users);
+  const [roleRow] = await query('SELECT id FROM roles WHERE name = ?', [data.role.toUpperCase()]);
+  if (!roleRow) throw new Error(`Role ${data.role} tidak valid.`);
+
+  const passwordHash = bcrypt.hashSync(data.password, 10);
+  const phone = data.phone || null;
+
+  const [res] = await query(`
+    INSERT INTO users (role_id, username, password_hash, name, phone, is_active, created_at)
+    VALUES (?, ?, ?, ?, ?, 1, NOW())
+  `, [roleRow.id, data.username.toLowerCase().trim(), passwordHash, data.name.trim(), phone]);
+
   return {
-    id: users[index].id,
-    username: users[index].username,
-    name: users[index].name,
-    role: users[index].role
+    id: res.insertId,
+    username: data.username.toLowerCase().trim(),
+    name: data.name.trim(),
+    role: data.role.toUpperCase(),
+    phone
   };
 }
 
-function deleteUser(id) {
-  let users = getUsers();
-  const target = users.find(u => u.id === Number(id));
-  if (!target) throw new Error('Pengguna tidak ditemukan.');
-  if (target.username === 'owner') {
-    throw new Error('Akun utama Owner tidak boleh dihapus.');
+async function updateUser(id, data) {
+  const [existing] = await query('SELECT * FROM users WHERE id = ?', [id]);
+  if (!existing) throw new Error(`Pengguna dengan ID ${id} tidak ditemukan.`);
+
+  const name = data.name ? data.name.trim() : existing.name;
+  const phone = data.phone !== undefined ? data.phone : existing.phone;
+  let roleId = existing.role_id;
+
+  if (data.role) {
+    const [roleRow] = await query('SELECT id FROM roles WHERE name = ?', [data.role.toUpperCase()]);
+    if (roleRow) roleId = roleRow.id;
   }
-  users = users.filter(u => u.id !== Number(id));
-  saveUsers(users);
+
+  let passwordHash = existing.password_hash;
+  if (data.password && data.password.trim() !== '') {
+    passwordHash = bcrypt.hashSync(data.password.trim(), 10);
+  }
+
+  await query(`
+    UPDATE users 
+    SET name = ?, phone = ?, role_id = ?, password_hash = ?, updated_at = NOW()
+    WHERE id = ?
+  `, [name, phone, roleId, passwordHash, id]);
+
+  const [updated] = await query(`
+    SELECT u.id, u.username, u.name, r.name as role, u.phone 
+    FROM users u JOIN roles r ON r.id = u.role_id WHERE u.id = ?
+  `, [id]);
+
+  return updated;
+}
+
+async function deleteUser(id) {
+  if (parseInt(id, 10) === 1) {
+    throw new Error('Akun super admin Owner utama tidak boleh dihapus.');
+  }
+
+  await query('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
   return true;
 }
 
 module.exports = {
-  getUsers,
   authenticate,
   verifyToken,
   authMiddleware,
   requireRole,
+  getUsers,
   createUser,
   updateUser,
   deleteUser

@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-const excelService = require('./services/excelService');
+const dbService = require('./services/mysqlDataService');
 const authRoutes = require('./routes/authRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 const bahanRoutes = require('./routes/bahanRoutes');
@@ -16,6 +16,7 @@ const auditRoutes = require('./routes/auditRoutes');
 const userRoutes = require('./routes/userRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const { authMiddleware } = require('./services/authService');
+const { testConnection, dbMode } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,19 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static frontend assets
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ensure Excel Service is ready
-app.use(async (req, res, next) => {
-  if (!excelService.isLoaded) {
-    try {
-      await excelService.loadPromise;
-    } catch (err) {
-      return res.status(500).json({ success: false, message: 'Gagal memuat dataset Excel: ' + err.message });
-    }
-  }
-  next();
-});
-
-// API Routes
+// API Routes (MySQL-backed)
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/bahan', bahanRoutes);
@@ -53,10 +42,10 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/storage', storageRoutes);
 
-// Dashboard stats endpoint
-app.get('/api/dashboard/stats', authMiddleware, (req, res) => {
+// Dashboard stats endpoint (MySQL-backed)
+app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
   try {
-    const stats = excelService.getDashboardStats();
+    const stats = await dbService.getDashboardStats();
     res.json({ success: true, data: stats });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -64,18 +53,22 @@ app.get('/api/dashboard/stats', authMiddleware, (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await testConnection();
   res.json({
-    status: 'UP',
+    status: dbHealth.connected ? 'UP' : 'DEGRADED',
     name: 'Kuliner Bebek Sanjay Gowa API',
     timestamp: new Date().toISOString(),
-    excelLoaded: excelService.isLoaded
+    database: {
+      mode: dbMode,
+      connected: dbHealth.connected,
+      version: dbHealth.version || null
+    }
   });
 });
 
 // SPA fallback for HTML5 routing
 app.use((req, res, next) => {
-  // If request is for an API route that wasn't matched, return 404 JSON
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ success: false, message: 'API route not found' });
   }
@@ -89,12 +82,18 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`=======================================================`);
     console.log(`🦆 KULINER BEBEK SANJAY GOWA — SERVER RUNNING`);
     console.log(`🌐 URL: http://localhost:${PORT}`);
-    console.log(`📊 Excel Data Center: Ready & Integrated`);
+    console.log(`🗄️ Database Backend: MySQL (${dbMode.toUpperCase()} MODE)`);
     console.log(`=======================================================`);
+    const connTest = await testConnection();
+    if (connTest.connected) {
+      console.log(`✅ MySQL Connected: ${connTest.version} (${connTest.current_db})`);
+    } else {
+      console.error(`❌ MySQL Connection Error:`, connTest.error);
+    }
   });
 }
 
